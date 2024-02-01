@@ -4,7 +4,7 @@ Date: 2024-01-31"""
 import sys
 import os
 from datetime import date
-import pandas as pd
+import pandas as  pd
 
 def main():
     sales_csv = get_sales_csv()
@@ -53,17 +53,27 @@ def process_sales_data(sales_csv, orders_dir):
     grouped_df = sales_df.groupby("ORDER ID")
 
     # For each order ID:
+    for order_id, order_df in grouped_df:
+        # Remove the "ORDER ID" column
+        order_df.drop(columns=["ORDER ID"], inplace=True)
+        # Sort the items by item number
+        order_df.sort_values(by="ITEM NUMBER", inplace=True)
+        # Append a "GRAND TOTAL" row
+        total_price = order_df["TOTAL PRICE"].sum()
+        grand_total_row = pd.DataFrame({
+            "PRODUCT CODE": ["GRAND TOTAL"],
+            "QUANTITY": [0],
+            "PRICE": [total_price],
+            "TOTAL PRICE": [total_price],
+        }, index=[len(order_df) + 1])
+        order_df = order_df.append(grand_total_row)
+        # Determine the file name and full path of the Excel sheet
+        order_num = order_df["ITEM NUMBER"].iloc[0]
+        order_file = f"order_{order_num:06d}.xlsx"
+        order_path = os.path.join(orders_dir, order_file)
     
-        # Remove the "ORDER ID" column
-        # Sort the items by item number
-        # Append a "GRAND TOTAL" row
-        # Determine the file name and full path of the Excel sheet
-    # For each order ID:
-        # Remove the "ORDER ID" column
-        # Sort the items by item number
-        # Append a "GRAND TOTAL" row
-        # Determine the file name and full path of the Excel sheet
         # Export the data to an Excel sheet
+        order_df.to_excel(order_path, index=False)
         # TODO: Format the Excel sheet
     pass
 
